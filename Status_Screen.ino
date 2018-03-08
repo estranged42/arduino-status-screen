@@ -1,3 +1,4 @@
+
 /*
  *  This sketch sends a message to a TCP server
  *
@@ -7,6 +8,7 @@
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
 #include "Adafruit_LiquidCrystal.h"
+#include <ArduinoJson.h>
 
 WiFiMulti WiFiMulti;
 
@@ -65,6 +67,8 @@ byte wifi3[8] = {
   B00000,
   B00100,
 };
+
+StaticJsonBuffer<200> jsonBuffer;
 
 void setup()
 {
@@ -141,9 +145,8 @@ void loop()
     // Use WiFiClient class to create TCP connections
     HTTPClient http;
 
-    http.begin("http://f.fischco.org/status.txt"); //HTTP
+    http.begin("http://io.adafruit.com/api/v2/estranged/feeds/mark-status/data/?limit=1&include=value"); //HTTP
 
-    Serial.print("[HTTP] GET...\n");
     // start connection and send HTTP header
     int httpCode = http.GET();
 
@@ -157,13 +160,20 @@ void loop()
             String payload = http.getString();
             Serial.println(payload);
 
-            int newLineIndex = payload.indexOf("\n");
+            jsonBuffer.clear();
+            JsonArray& jsonArray = jsonBuffer.parseArray(payload);
+            Serial.println(jsonBuffer.size());
+            const char* statusValue = jsonArray[0]["value"];
+            Serial.println(statusValue);
+            String statusString = String(statusValue);
+
+            int newLineIndex = statusString.indexOf("|");
             Serial.println(newLineIndex);
-            String lineOne = payload;
+            String lineOne = statusString;
             String lineTwo;
             if (newLineIndex > 0) {
-              lineOne = payload.substring(0, newLineIndex);
-              lineTwo = payload.substring(newLineIndex + 1);
+              lineOne = statusString.substring(0, newLineIndex);
+              lineTwo = statusString.substring(newLineIndex + 1);
             }
             lcd.clear();
             lcd.setCursor(0, 0);
@@ -179,7 +189,7 @@ void loop()
 
     http.end();
 
-    delay(30000);
+    delay(5000);
 
 }
 
