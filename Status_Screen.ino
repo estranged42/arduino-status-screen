@@ -167,20 +167,8 @@ void loop()
             Serial.println(statusValue);
             String statusString = String(statusValue);
 
-            int newLineIndex = statusString.indexOf("|");
-            Serial.println(newLineIndex);
-            String lineOne = statusString;
-            String lineTwo;
-            if (newLineIndex > 0) {
-              lineOne = statusString.substring(0, newLineIndex);
-              lineTwo = statusString.substring(newLineIndex + 1);
-            }
-            lcd.clear();
-            lcd.setCursor(0, 0);
-            lcd.print(lineOne);
-            if (newLineIndex > 0) {
-              lcd.setCursor(0, 1);
-              lcd.print(lineTwo);
+            for (int n = 0; n < 10; n++) {
+              displayMessage(statusString);
             }
         }
     } else {
@@ -189,8 +177,45 @@ void loop()
 
     http.end();
 
-    delay(60000);
+    delay(1000);
 
+}
+
+
+void displayMessage(String statusString) {
+  int newLineIndex = statusString.indexOf("|");
+  Serial.println(newLineIndex);
+  String lineOne = statusString;
+  String lineTwo;
+  if (newLineIndex > 0) {
+    lineOne = statusString.substring(0, newLineIndex);
+    lineTwo = statusString.substring(newLineIndex + 1);
+  }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(lineOne);
+  
+  if (newLineIndex > 0) {
+    lcd.setCursor(0, 1);
+    lcd.print(lineTwo);
+    delay(2000);
+    
+    int len = lineTwo.length();
+    int scroll_dist = len - 16;
+    if (scroll_dist > 0) {
+      lcd.setCursor(16,0);
+      lcd.autoscroll();
+      for (int i = 0 ; i < scroll_dist ; i++) {
+        lcd.print(" ");
+        delay(300);
+      }
+      // turn off automatic scrolling
+      lcd.noAutoscroll();
+      delay(2000);
+      lcd.clear();
+      delay(1000);
+    }
+  }
 }
 
 
